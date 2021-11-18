@@ -19,7 +19,9 @@ fi
 
 if [ -e  "$SNAP_DATA/args/cni-network/cni.yaml.disabled" ] && [ -e "$SNAP_DATA/args/cni-network/05-cilium-cni.conf" ] ; then 
   echo "Cilium is enabled and is not suitable for multi node clusters."
-  exit 1
+  #FIXME: Not sure this will work??
+  echo "But... I'm going to do it anyway"
+  #exit 1
 fi
 
 if echo "$*" | grep -q -- 'help'; then

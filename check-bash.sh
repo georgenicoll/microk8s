@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+read -ra CILIUM_VERSION <<< "$1"
+if [ -z "$CILIUM_VERSION" ] || [ "-" == "${CILIUM_VERSION}" ] ; then
+  CILIUM_VERSION="v1.10"
+fi
+CILIUM_ERSION=$(echo $CILIUM_VERSION | sed 's/v//g')
+
+ADDITIONAL_HELM_ARGUMENTS="${@:2}"
+
+echo "CILIUM_VERSION: ${CILIUM_VERSION}"
+echo "ADDITIONAL_HELM_ARGUMENTS: |${ADDITIONAL_HELM_ARGUMENTS}|"

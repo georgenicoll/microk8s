@@ -6,11 +6,12 @@ source $SNAP/actions/common/utils.sh
 
 CA_CERT=/snap/core18/current/etc/ssl/certs/ca-certificates.crt
 
+# FIXME:  Remove ARCH and commented lines
 ARCH=$(arch)
-if ! [ "${ARCH}" = "amd64" ]; then
-  echo "Cilium is not available for ${ARCH}" >&2
-  exit 1
-fi
+#if ! [ "${ARCH}" = "amd64" ]; then
+#  echo "Cilium is not available for ${ARCH}" >&2
+#  exit 1
+#fi
 
 "$SNAP/microk8s-enable.wrapper" helm3
 
@@ -36,10 +37,13 @@ fi
 echo "Enabling Cilium"
 
 read -ra CILIUM_VERSION <<< "$1"
-if [ -z "$CILIUM_VERSION" ]; then
+if [ -z "$CILIUM_VERSION" ] || [ "-" == "$CILIUM_VERSION" ]  ; then
   CILIUM_VERSION="v1.10"
 fi
 CILIUM_ERSION=$(echo $CILIUM_VERSION | sed 's/v//g')
+
+ADDITIONAL_HELM_ARGUMENTS="${@:2}"
+
 
 if [ -f "${SNAP_DATA}/bin/cilium-$CILIUM_ERSION" ]
 then
@@ -68,6 +72,7 @@ else
   run_with_sudo mkdir -p "$SNAP_DATA/actions/cilium/"
 
   # Generate the YAMLs for Cilium and apply them
+  echo "Generating and applying YAMLs using additional arguments to helm: \"${ADDITIONAL_HELM_ARGUMENTS}\""
   (cd "${SNAP_DATA}/tmp/cilium/$CILIUM_DIR/install/kubernetes"
   ${SNAP_DATA}/bin/helm3 template cilium \
       --namespace $NAMESPACE \
@@ -79,6 +84,7 @@ else
       --set daemon.runPath="$SNAP_DATA/var/run/cilium" \
       --set operator.replicas=1 \
       --set keepDeprecatedLabels=true \
+      ${ADDITIONAL_HELM_ARGUMENTS} \
       | run_with_sudo tee "$SNAP_DATA/actions/cilium.yaml" >/dev/null)
 
   ${SNAP}/microk8s-status.wrapper --wait-ready >/dev/null
